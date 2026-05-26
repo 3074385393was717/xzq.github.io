@@ -2,100 +2,73 @@
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
-    <title>AI Fracture Diagnostic System</title>
+    <title>骨折影像分析系统</title>
     <style>
-        body { font-family: 'Arial', sans-serif; padding: 20px; background-color: #f4f4f9; }
-        .container { max-width: 900px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        .controls { margin-bottom: 20px; }
-        #canvasContainer { margin-top: 20px; border: 2px solid #ddd; display: inline-block; }
-        .result-panel { margin-top: 20px; padding: 15px; background: #eef; border-radius: 5px; }
+        body { font-family: Arial, sans-serif; padding: 20px; line-height: 1.6; }
+        .container { max-width: 800px; margin: auto; }
+        #canvas-container { margin-top: 20px; position: relative; border: 2px solid #ccc; display: inline-block; }
+        .result-box { margin-top: 10px; color: red; font-weight: bold; }
     </style>
 </head>
 <body>
 <div class="container">
-    <select id="langSelect" onchange="updateLanguage()">
+    <h1 id="title">骨折影像辅助分析系统</h1>
+    
+    <select onchange="changeLanguage(this.value)">
         <option value="zh">中文</option>
         <option value="en">English</option>
         <option value="ko">한국어</option>
     </select>
 
-    <h1 data-i18n="title">骨折AI检测系统 Pro</h1>
-    
-    <div class="controls">
-        <input type="file" id="imageLoader" accept="image/*">
-        <button onclick="startAnalysis()" data-i18n="btn">开始深度分析</button>
+    <div style="margin-top: 20px;">
+        <input type="file" id="upload" accept="image/*">
     </div>
 
-    <div id="canvasContainer">
-        <canvas id="mainCanvas"></canvas>
+    <div id="canvas-container">
+        <canvas id="canvas"></canvas>
     </div>
-
-    <div class="result-panel">
-        <h3 data-i18n="resultLabel">分析结果:</h3>
-        <div id="resultContent" style="font-size: 20px; font-weight: bold; color: #d32f2f;">--</div>
-    </div>
+    <div id="result" class="result-box"></div>
 </div>
 
 <script>
-    // 骨折类型库
-    const fractures = [
-        { id: "Avulsion", zh: "撕脱性骨折", en: "Avulsion Fracture", ko: "열리골절" },
-        { id: "Comminuted", zh: "粉碎性骨折", en: "Comminuted Fracture", ko: "분쇄골절" },
-        { id: "Dislocation", zh: "骨折脱位", en: "Fracture Dislocation", ko: "골절 탈구" },
-        { id: "Greenstick", zh: "青枝骨折", en: "Greenstick Fracture", ko: "생나무골절" },
-        { id: "Hairline", zh: "发丝状骨折", en: "Hairline Fracture", ko: "실금골절" },
-        { id: "Impacted", zh: "嵌插骨折", en: "Impacted Fracture", ko: "함입골절" },
-        { id: "Longitudinal", zh: "纵行骨折", en: "Longitudinal Fracture", ko: "종적골절" },
-        { id: "Oblique", zh: "斜行骨折", en: "Oblique Fracture", ko: "사골절" },
-        { id: "Pathological", zh: "病理性骨折", en: "Pathological Fracture", ko: "병리골절" },
-        { id: "Spiral", zh: "螺旋骨折", en: "Spiral Fracture", ko: "나선골절" }
-    ];
-
+    // 多语言数据
     const i18n = {
-        "zh": { title: "骨折AI检测系统", btn: "开始分析", resultLabel: "分析结果:" },
-        "en": { title: "AI Fracture Detection System", btn: "Start Analysis", resultLabel: "Analysis Result:" },
-        "ko": { title: "골절 AI 진단 시스템", btn: "분석 시작", resultLabel: "분석 결과:" }
+        zh: { title: "骨折影像辅助分析系统", result: "分析结果: " },
+        en: { title: "Fracture Analysis System", result: "Analysis Result: " },
+        ko: { title: "골절 영상 분석 시스템", result: "분석 결과: " }
     };
 
-    function updateLanguage() {
-        const lang = document.getElementById('langSelect').value;
-        document.querySelectorAll('[data-i18n]').forEach(el => {
-            el.innerText = i18n[lang][el.getAttribute('data-i18n')];
-        });
+    function changeLanguage(lang) {
+        document.getElementById('title').innerText = i18n[lang].title;
     }
 
-    // 图像上传与处理
-    const canvas = document.getElementById('mainCanvas');
-    const ctx = canvas.getContext('2d');
-    
-    document.getElementById('imageLoader').onchange = function(e) {
+    // 图片上传与识别逻辑
+    document.getElementById('upload').addEventListener('change', function(e) {
+        const file = e.target.files[0];
         const reader = new FileReader();
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
         reader.onload = function(event) {
             const img = new Image();
             img.onload = function() {
-                canvas.width = 600; canvas.height = 400;
-                ctx.drawImage(img, 0, 0, 600, 400);
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0);
+                
+                // --- 这里是模拟的AI分析过程 ---
+                // 实际开发中，应将图片传给后端API，后端返回骨折类型和坐标
+                setTimeout(() => {
+                    ctx.strokeStyle = "red";
+                    ctx.lineWidth = 5;
+                    ctx.strokeRect(50, 50, 150, 100); // 模拟红色边框标注
+                    document.getElementById('result').innerText = "检测结果: 横行骨折 (Type: Transverse Fracture)";
+                }, 1000);
             }
             img.src = event.target.result;
         }
-        reader.readAsDataURL(e.target.files[0]);
-    };
-
-    function startAnalysis() {
-        // 模拟识别：实际项目中这里会调用您的模型接口
-        const randomType = fractures[Math.floor(Math.random() * fractures.length)];
-        const lang = document.getElementById('langSelect').value;
-        
-        // 显示结果
-        document.getElementById('resultContent').innerText = randomType[lang];
-
-        // 标注病变区域 (红色边框)
-        ctx.strokeStyle = 'red';
-        ctx.lineWidth = 4;
-        ctx.strokeRect(150, 100, 300, 200);
-        ctx.fillStyle = 'rgba(255, 0, 0, 0.2)';
-        ctx.fillRect(150, 100, 300, 200);
-    }
+        reader.readAsDataURL(file);
+    });
 </script>
 </body>
 </html>

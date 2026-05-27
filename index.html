@@ -7,7 +7,13 @@
         body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f7f6; padding: 20px; }
         .container { max-width: 900px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 15px; }
-        #canvas-container { margin-top: 20px; border: 3px dashed #3498db; display: flex; justify-content: center; background: #eee; }
+        
+        /* 语言按钮样式 */
+        .lang-group { display: flex; gap: 10px; }
+        .lang-btn { padding: 8px 16px; border: 1px solid #0056b3; background: white; color: #0056b3; cursor: pointer; border-radius: 4px; font-weight: bold; transition: 0.3s; }
+        .lang-btn.active { background: #0056b3; color: white; }
+        
+        #canvas-container { margin-top: 20px; border: 3px dashed #3498db; display: flex; justify-content: center; background: #eee; min-height: 200px; }
         .report-section { margin-top: 20px; padding: 20px; background: #e8f4fd; border-left: 5px solid #3498db; border-radius: 4px; display: none; }
     </style>
 </head>
@@ -16,14 +22,14 @@
 <div class="container">
     <div class="header">
         <h1 id="title">骨折影像分析系统</h1>
-        <select id="lang-select" onchange="updateLanguage()">
-            <option value="zh" selected>中文</option>
-            <option value="en">English</option>
-            <option value="ko">한국어</option>
-        </select>
+        <div class="lang-group">
+            <button class="lang-btn active" onclick="setLang('zh')" id="btn-zh">中文</button>
+            <button class="lang-btn" onclick="setLang('en')" id="btn-en">English</button>
+            <button class="lang-btn" onclick="setLang('ko')" id="btn-ko">한국어</button>
+        </div>
     </div>
 
-    <input type="file" id="upload" style="margin-top:20px;">
+    <input type="file" id="upload" style="margin-top:20px;" accept="image/*">
     
     <div id="canvas-container">
         <canvas id="canvas" style="max-width: 100%;"></canvas>
@@ -31,21 +37,29 @@
 
     <div id="report" class="report-section">
         <h2 id="report-title">分析报告</h2>
-        <p><strong>骨折类型:</strong> <span id="res-type">横行骨折</span></p>
-        <p><strong>风险评估:</strong> <span id="res-risk">中度 - 需密切观察</span></p>
-        <p><strong>临床建议:</strong> <span id="res-advice">建议骨科专科就诊</span></p>
+        <p><strong>骨折类型:</strong> <span id="res-type">...</span></p>
+        <p><strong>风险评估:</strong> <span id="res-risk">...</span></p>
+        <p><strong>临床建议:</strong> <span id="res-advice">...</span></p>
     </div>
 </div>
 
 <script>
+    // 语言词典
     const dict = {
-        en: { title: "AI Fracture Analysis System", report: "Analysis Report", type: "Transverse Fracture", risk: "Moderate - Monitor closely", advice: "Consult orthopedic specialist" },
         zh: { title: "骨折影像分析系统", report: "分析报告", type: "横行骨折", risk: "中度 - 需密切观察", advice: "建议骨科专科就诊" },
+        en: { title: "AI Fracture Analysis System", report: "Analysis Report", type: "Transverse Fracture", risk: "Moderate - Monitor closely", advice: "Consult orthopedic specialist" },
         ko: { title: "골절 영상 분석 시스템", report: "분석 보고서", type: "횡골절", risk: "중등도 - 주의 깊게 관찰", advice: "정형외과 전문의 상담 필요" }
     };
 
-    function updateLanguage() {
-        const lang = document.getElementById('lang-select').value;
+    let currentLang = 'zh';
+
+    function setLang(lang) {
+        currentLang = lang;
+        // 按钮样式更新
+        document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById('btn-' + lang).classList.add('active');
+        
+        // 文字内容更新
         document.getElementById('title').innerText = dict[lang].title;
         document.getElementById('report-title').innerText = dict[lang].report;
         document.getElementById('res-type').innerText = dict[lang].type;
@@ -53,6 +67,7 @@
         document.getElementById('res-advice').innerText = dict[lang].advice;
     }
 
+    // 图片处理逻辑
     document.getElementById('upload').addEventListener('change', function(e) {
         if (!e.target.files[0]) return;
         const reader = new FileReader();
@@ -63,10 +78,12 @@
                 canvas.width = img.width; canvas.height = img.height;
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0);
-                // 模拟标注
+                
+                // 模拟红色方框标注
                 ctx.strokeStyle = "red"; ctx.lineWidth = 10;
                 ctx.strokeRect(img.width*0.2, img.height*0.2, img.width*0.6, img.height*0.5);
-                // 上传后才显示报告
+                
+                // 显示分析报告
                 document.getElementById('report').style.display = 'block';
             }
             img.src = event.target.result;

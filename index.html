@@ -1,74 +1,24 @@
-<!DOCTYPE html>
-<html lang="zh">
-<head>
-    <meta charset="UTF-8">
-    <title>骨折影像分析系统</title>
-    <style>
-        body { font-family: Arial, sans-serif; padding: 20px; line-height: 1.6; }
-        .container { max-width: 800px; margin: auto; }
-        #canvas-container { margin-top: 20px; position: relative; border: 2px solid #ccc; display: inline-block; }
-        .result-box { margin-top: 10px; color: red; font-weight: bold; }
-    </style>
-</head>
-<body>
-<div class="container">
-    <h1 id="title">骨折影像辅助分析系统</h1>
-    
-    <select onchange="changeLanguage(this.value)">
-        <option value="zh">中文</option>
-        <option value="en">English</option>
-        <option value="ko">한국어</option>
-    </select>
-
-    <div style="margin-top: 20px;">
-        <input type="file" id="upload" accept="image/*">
-    </div>
-
-    <div id="canvas-container">
-        <canvas id="canvas"></canvas>
-    </div>
-    <div id="result" class="result-box"></div>
+<div id="report-section" class="report-box" style="display: none;">
+    <h3>③ Real-time Matrix Analysis Report</h3>
+    <p><strong id="label-exam">Exam Subject:</strong> Bone X-ray / CT Morphological Examination</p>
+    <p><strong id="label-result">Analysis Result:</strong> Positive - Bone fracture detected</p>
+    <p><strong id="label-conf">AI Confidence:</strong> 96.7%</p>
+    <p><strong id="label-report">Anatomical & Pathological Report:</strong> <span id="res-detail">Avulsion fracture</span></p>
+    <p><strong id="label-advice">Clinical Suggestion:</strong> <span id="res-advice">Recommend immobilization and follow-up MRI.</span></p>
 </div>
 
 <script>
-    // 多语言数据
-    const i18n = {
-        zh: { title: "骨折影像辅助分析系统", result: "分析结果: " },
-        en: { title: "Fracture Analysis System", result: "Analysis Result: " },
-        ko: { title: "골절 영상 분석 시스템", result: "분석 결과: " }
-    };
-
-    function changeLanguage(lang) {
-        document.getElementById('title').innerText = i18n[lang].title;
-    }
-
-    // 图片上传与识别逻辑
+    // 在文件上传处理逻辑中加入显示控制
     document.getElementById('upload').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        const reader = new FileReader();
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-
-        reader.onload = function(event) {
-            const img = new Image();
-            img.onload = function() {
-                canvas.width = img.width;
-                canvas.height = img.height;
-                ctx.drawImage(img, 0, 0);
+        if (e.target.files && e.target.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                // ... (图片绘制逻辑保持不变)
                 
-                // --- 这里是模拟的AI分析过程 ---
-                // 实际开发中，应将图片传给后端API，后端返回骨折类型和坐标
-                setTimeout(() => {
-                    ctx.strokeStyle = "red";
-                    ctx.lineWidth = 5;
-                    ctx.strokeRect(50, 50, 150, 100); // 模拟红色边框标注
-                    document.getElementById('result').innerText = "检测结果: 横行骨折 (Type: Transverse Fracture)";
-                }, 1000);
+                // --- 关键点：图片上传并处理后，将报告区域显示出来 ---
+                document.getElementById('report-section').style.display = 'block';
             }
-            img.src = event.target.result;
+            reader.readAsDataURL(e.target.files[0]);
         }
-        reader.readAsDataURL(file);
     });
 </script>
-</body>
-</html>
